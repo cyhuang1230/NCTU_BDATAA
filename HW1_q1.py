@@ -5,10 +5,7 @@ import math
 import matplotlib.pyplot as plt
 import traceback
 import datetime
-import threading
-import queue
 import multiprocessing as mp
-#from collections import namedtuple
 
 title = ['vendor_id', 'pickup_time', 'dropoff_time', 'passenger_count', 'trip_distance',
          'x0', 'y0', 'RatecodeID', 'store_and_fwd_flag', 'x1',
@@ -22,11 +19,9 @@ required_title = pickup_title
 separation = '\n-------------'
 # row_count = 100000
 row_count = -1
-# files = ["try.txt", "try2.txt"]
 files = ["data10.csv", "data11.csv", "data12.csv"]
 # files = ["data11.csv"]
 numOfProcess = 1
-# num_worker_threads = 4
 
 def normalizeColumn(aColumn: list) -> (float, list):
     """
@@ -43,7 +38,6 @@ def getRow(aFile: str) -> list:
             float, float, int, str, float,
             float, int, float, float, float,
             float, float, float, float]
-    # Record = namedtuple("Record", title)
     with open(aFile) as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
@@ -51,7 +45,6 @@ def getRow(aFile: str) -> list:
                 hasReadTitle = True
                 continue
             row = list(cast(val) for cast, val in zip(type, row))
-            # yield Record._make(row)
             yield row
 
 
@@ -66,28 +59,11 @@ class ClusteringKMeans:
         self.iterationCount = 0
         self.sse = 0
 
-        # # Multi-threading support
-        # self.q = queue.Queue()
-        # self.threads = []
-        # for i in range(num_worker_threads):
-        #     t = threading.Thread(target=self.assignPointsToClusterMulti)
-        #     t.start()
-        #     self.threads.append(t)
-
 
         """
         1. Read file & put in data
         """
-        # self.data = {title[i]: [] for i in range(title_len) if title[i] in required_title}
         self.data = []
-        # tmp = {title[i]: [] for i in range(title_len) if title[i] in required_title}
-        # # for it in readline(file):
-        # it = getRow(filename)
-        # for _ in range(row_count):
-        #     now = next(it)
-        #     for i in range(title_len):
-        #         if title[i] in required_title and now[i] != 0.0:
-        #             tmp[title[i]].append(now[i])
 
         for key in row_data:
             self.data.append(row_data[key])
@@ -108,16 +84,8 @@ class ClusteringKMeans:
         """
         random.seed()
         self.centroids = [[self.data[i][j] for i in range(required_title.__len__())] for j in random.sample(range(self.size), self.k)]
-        # print(self.centroids)
 
         self.assignPointsToCluster()
-
-    # def __exit__(self, exc_type, exc_val, exc_tb):
-    #     # stop workers
-    #     for i in range(num_worker_threads):
-    #         self.q.put(None)
-    #     for t in self.threads:
-    #         t.join()
 
     def updateCentroid(self):
         # start = datetime.datetime.now()
@@ -135,20 +103,6 @@ class ClusteringKMeans:
         self.belongsTo = [self.assignPointToCluster(i) for i in range(self.size)]
         # end = datetime.datetime.now()
         # print('k = %i: assignPointsToCluster took %s' %(self.k, end-start))
-
-        # for i in range(self.size):
-        #     self.q.put(i)
-        #
-        # # block until all tasks are done
-        # self.q.join()
-
-    # def assignPointsToClusterMulti(self):
-    #     while True:
-    #         pointIdx = self.q.get()
-    #         if pointIdx is None:
-    #             break
-    #         self.assignPointToCluster(pointIdx)
-    #         self.q.task_done()
 
     def assignPointToCluster(self, pointIdx: int) -> int:
         min = sys.maxsize
@@ -321,4 +275,4 @@ if __name__ == '__main__':
     read_file_end_time = datetime.datetime.now()
     print('Finished reading file, total %i lines, taking %s.' %(cur_row_count, (read_file_end_time - read_file_start_time)))
 
-    getEachSseByKs(5, 5)
+    getEachSseByKs(1, 10)
